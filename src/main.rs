@@ -31,12 +31,8 @@ fn main() {
 
     let mut event_pump = ctx.event_pump().unwrap();
 
-    let mut sand_grid = SandGrid { 
-		grid: vec![Sand::Air; WIDTH * HEIGHT],
-		width: WIDTH,
-		height: HEIGHT
-	};
-    let mut sand_grid_future = sand_grid.grid.clone();
+    let mut sand_grid = SandGrid::new(WIDTH, HEIGHT);
+	let mut sand_grid_future = sand_grid.grid.clone();
 
     let mut selected_sand_ind = 0;
 	let mut radius = 4;
@@ -78,11 +74,13 @@ fn main() {
             	let scaley = 600 / HEIGHT;
             	let mousex = mouse_state.x() / scalex as i32;
             	let mousey = mouse_state.y() / scaley as i32;
-				sand::place_sand(&mut sand_grid, sand_menu[selected_sand_ind], mousex, mousey, radius);	
+				sand_grid.place_sand(sand_menu[selected_sand_ind], mousex, mousey, radius);	
 			}
         }
 
         if timer > 1.0 / 60.0 && !paused {
+			let start_sand_update = Instant::now();
+
             sand::update_sand(&sand_grid, &mut sand_grid_future, frame);
 
             //Copy the future array in the sand buffer
@@ -94,6 +92,9 @@ fn main() {
 					}
                 }
             }
+
+			let time_passed = start_sand_update.elapsed().as_millis();
+			println!("{time_passed} ms to update sand");
 
             timer = 0.0;
             frame += 1;	

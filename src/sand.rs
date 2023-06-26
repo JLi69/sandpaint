@@ -48,39 +48,143 @@ pub fn sand_color(sand: Sand) -> Color {
 	}
 }
 
+impl SandProperties {
+	pub fn empty() -> Self {
+		SandProperties { 
+			can_replace: HashSet::<Sand>::new(), 
+			replace_with: HashMap::<Sand, Sand>::new() 
+		}
+	}
+
+	pub fn from_vecs(can_replace: Option<Vec<Sand>>,
+					 replace_with: Option<Vec<(Sand, Sand)>>) -> Self {
+		let mut properties = SandProperties::empty();
+
+		properties.add_replaceable(Sand::Air);
+
+		match can_replace {
+			Some(can_replace) => { 
+				can_replace
+					.into_iter()
+					.for_each(|sand| properties.add_replaceable(sand)); 
+			}
+			_ => {}
+		}
+
+		match replace_with {
+			Some(replace_with) => {
+				replace_with
+					.into_iter()
+					.for_each(|(sand1, sand2)| properties.add_replace_with(sand1, sand2));	
+			}
+			_ => {}
+		}
+	
+		properties
+	}
+
+	pub fn add_replaceable(&mut self, sand: Sand) {
+		self.can_replace.insert(sand);
+	}
+
+	pub fn add_replace_with(&mut self, can_replace: Sand, replace_with: Sand) {
+		self.replace_with.insert(can_replace, replace_with);
+	}
+
+	pub fn replace(&self, sand: Sand, sand_to_replace: Sand) -> Sand {
+		match self.replace_with.get(&sand_to_replace) {
+			Some(s) => *s,
+			_ => sand
+		}
+	}
+}
+
+impl SandGrid {
+	fn out_of_bounds(&self, x: isize, y: isize) -> bool {
+		x < 0 || y < 0 || x >= self.width as isize || y >= self.height as isize
+	}
+
+	pub fn new(w: usize, h: usize) -> Self {
+		SandGrid {
+			grid: vec![Sand::Air; w * h],
+			width: w,
+			height: h
+		}
+	}
+
+	//Place sand in a circle centered at posx and posy
+	pub fn place_sand(&mut self, sand: Sand, posx: i32, posy: i32, radius: u32) {
+		for y in (posy - radius as i32)..(posy + radius as i32) {
+	        for x in (posx - radius as i32)..(posx + radius as i32) {
+	            if self.out_of_bounds(x as isize, y as isize) {
+	                continue;
+	            }
+	
+	            if (y - posy) * (y - posy) + (x - posx) * (x - posx) < (radius * radius) as i32 {
+	                self.grid[y as usize * self.width + x as usize] = sand;
+	            }
+	        }
+	    }
+	}
+
+	pub fn get_sand(&self, x: usize, y: usize) -> Sand {
+		if self.out_of_bounds(x as isize, y as isize) {
+			return Sand::Air	
+		}
+
+		self.grid[y * self.width + x]
+	}
+
+	pub fn set_sand(&mut self, x: usize, y: usize, sand: Sand) {
+		if self.out_of_bounds(x as isize, y as isize) {
+			return	
+		}
+
+		self.grid[y * self.width + x] = sand;	
+	}
+}
+
 fn update_pixel(
     x: usize,
     y: usize,
     sand_grid: &SandGrid,
     future_sand: &mut [Sand],
 ) {
-    match sand_grid.grid[y * sand_grid.width + x] {
+    match sand_grid.get_sand(x, y) {
         Sand::Air => {}
         Sand::Sand => {
-            let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
-            sand_property.can_replace.insert(Sand::Water);
-            sand_property.can_replace.insert(Sand::Fire);
-            sand_property.can_replace.insert(Sand::Oil);
-            sand_property.can_replace.insert(Sand::Acid);
+			let can_replace = vec![
+				Sand::Water,
+				Sand::Fire,
+				Sand::Oil,
+				Sand::Acid
+			];
 
-            sand_property.replace_with.insert(Sand::Acid, Sand::Acid);
+			let replace_with = vec![
+				(Sand::Acid, Sand::Acid)
+			];
+
+            let sand_property = SandProperties::from_vecs(
+				Some(can_replace), 
+				Some(replace_with)
+			);
 
             update_sand::update_particle(x, y, sand_grid, future_sand, &sand_property);
 		}
         Sand::Water => {
-            let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(),
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
-            sand_property.can_replace.insert(Sand::Fire);
-            sand_property.can_replace.insert(Sand::Lava);
+			let can_replace = vec![
+				Sand::Fire,
+				Sand::Lava
+			];
 
-            sand_property.replace_with.insert(Sand::Lava, Sand::Stone);
+			let replace_with = vec![
+				(Sand::Lava, Sand::Stone)	
+			];
+
+            let sand_property = SandProperties::from_vecs(
+				Some(can_replace),
+				Some(replace_with)
+			);
 
             update_sand::update_liquid(x, y, sand_grid, future_sand, &sand_property);
         }
@@ -91,67 +195,63 @@ fn update_pixel(
 				return	
 			}
 
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
+			let sand_property = SandProperties::from_vecs(None, None);
 
             update_sand::update_liquid(x, y, sand_grid, future_sand, &sand_property);	
 		}
 		Sand::Lava => { 
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
-            sand_property.can_replace.insert(Sand::Water);
-            sand_property.can_replace.insert(Sand::Fire);
+			let mut sand_property = SandProperties::empty();
+            sand_property.add_replaceable(Sand::Air);
+            sand_property.add_replaceable(Sand::Water);
+            sand_property.add_replaceable(Sand::Fire);
 
-            sand_property.replace_with.insert(Sand::Water, Sand::Stone);
+            sand_property.add_replace_with(Sand::Water, Sand::Stone);
 
 			update_sand::update_liquid(x, y, sand_grid, future_sand, &sand_property);			
 		}
 		Sand::Acid => {
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
-            sand_property.can_replace.insert(Sand::Wood);
-            sand_property.can_replace.insert(Sand::Sand);
-            sand_property.can_replace.insert(Sand::Fire);
-            sand_property.can_replace.insert(Sand::Stone);
+			let can_replace = vec![
+				Sand::Wood,
+            	Sand::Sand,
+            	Sand::Fire,
+            	Sand::Stone
+			];
+			
+			let replace_with = vec![
+				(Sand::Wood, Sand::Delete),
+				(Sand::Sand, Sand::Delete),
+				(Sand::Fire, Sand::Delete),
+				(Sand::Stone, Sand::Delete)
+			];
 
-			sand_property.replace_with.insert(Sand::Wood, Sand::Delete);
-            sand_property.replace_with.insert(Sand::Sand, Sand::Delete);
-            sand_property.replace_with.insert(Sand::Fire, Sand::Delete);
-            sand_property.replace_with.insert(Sand::Stone, Sand::Delete);
-
+			let sand_property = SandProperties::from_vecs(Some(can_replace), Some(replace_with));
+            
             update_sand::update_liquid(x, y, sand_grid, future_sand, &sand_property);
 		}
 		Sand::Fire => {
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);	
-            sand_property.can_replace.insert(Sand::Oil);
-            sand_property.can_replace.insert(Sand::Wood);
+			let can_replace = vec! [
+				Sand::Oil,
+				Sand::Wood
+			];
+			let sand_property = SandProperties::from_vecs(Some(can_replace), None);
 
 			update_sand::update_fire(x, y, sand_grid, future_sand, &sand_property);	
 		}
 		Sand::Stone => {
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);	
-            sand_property.can_replace.insert(Sand::Oil);
-            sand_property.can_replace.insert(Sand::Water);
-			sand_property.can_replace.insert(Sand::Acid);
+			let can_replace = vec![
+				Sand::Oil,
+				Sand::Water,
+				Sand::Acid
+			];
 
-            sand_property.replace_with.insert(Sand::Acid, Sand::Acid);
+			let replace_with = vec![
+				(Sand::Acid, Sand::Acid)
+			];
+
+			let sand_property = SandProperties::from_vecs(
+				Some(can_replace),
+				Some(replace_with)
+			);
 
 			if move_sand::fall_down(x, y, sand_grid, future_sand, &sand_property) {
 				return	
@@ -173,25 +273,23 @@ fn update_pixel(
 			}
 		}
 		Sand::Explosive => {
-			let mut sand_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            sand_property.can_replace.insert(Sand::Air);
-            sand_property.can_replace.insert(Sand::Water);	
-            sand_property.can_replace.insert(Sand::Oil);	
+			let can_replace = vec![
+				Sand::Water,
+				Sand::Oil
+			];
 
-			let mut explosion_property = SandProperties {
-                can_replace: HashSet::<Sand>::new(), 
-                replace_with: HashMap::<Sand, Sand>::new()
-            };
-            explosion_property.can_replace.insert(Sand::Air);	
-            explosion_property.can_replace.insert(Sand::Oil);
-			explosion_property.can_replace.insert(Sand::Wood);
-			explosion_property.can_replace.insert(Sand::Fire);
-			explosion_property.can_replace.insert(Sand::Sand);
-			explosion_property.can_replace.insert(Sand::Explosive);
-			explosion_property.can_replace.insert(Sand::Lava);
+			let sand_property = SandProperties::from_vecs(Some(can_replace), None);	
+
+			let can_replace = vec![
+				Sand::Water,
+				Sand::Wood,
+				Sand::Fire,
+				Sand::Sand,
+				Sand::Explosive,
+				Sand::Lava
+			];
+
+			let explosion_property = SandProperties::from_vecs(Some(can_replace), None); 
 
 			if move_sand::count_neighbors(x, y, sand_grid, Sand::Lava) >= 1 ||
 				move_sand::count_neighbors(x, y, sand_grid, Sand::Fire) >= 1 {
@@ -228,20 +326,6 @@ pub fn update_sand(
             }
 
             update_pixel(x, y, sand_grid, future_sand);
-        }
-    }
-}
-
-pub fn place_sand(sand_grid: &mut SandGrid, sand: Sand, posx: i32, posy: i32, radius: u32) {
-	for y in (posy - radius as i32)..(posy + radius as i32) {
-        for x in (posx - radius as i32)..(posx + radius as i32) {
-            if y < 0 || y >= sand_grid.height as i32 || x < 0 || x >= sand_grid.width as i32 {
-                continue;
-            }
-
-            if (y - posy) * (y - posy) + (x - posx) * (x - posx) < (radius * radius) as i32 {
-                sand_grid.grid[y as usize * sand_grid.width + x as usize] = sand;
-            }
         }
     }
 }

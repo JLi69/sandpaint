@@ -1,14 +1,5 @@
 use crate::sand::{Sand, SandProperties, SandGrid};
 
-pub fn replace(sand: Sand,
-		   sand_to_replace: Sand,
-		   properties: &SandProperties) -> Sand {
-	match properties.replace_with.get(&sand_to_replace) {
-		Some(s) => *s,
-		_ => sand
-	}
-}
-
 //Returns true if it can move down,
 //false otherwise
 pub fn fall_down(
@@ -27,8 +18,8 @@ pub fn fall_down(
         .contains(&sand_grid.grid[(y + 1) * sand_grid.width + x])
     {
         future_sand[(y + 1) * sand_grid.width + x] = 
-			replace(sand_grid.grid[y * sand_grid.width + x],
-					sand_grid.grid[(y + 1) * sand_grid.width + x], properties);
+			properties.replace(sand_grid.grid[y * sand_grid.width + x],
+					sand_grid.grid[(y + 1) * sand_grid.width + x]);
         return true;
     }
 
@@ -56,9 +47,8 @@ pub fn fall_left_right(
                 .contains(&future_sand[(y + 1) * sand_grid.width + (x - 1)])
         {
             future_sand[(y + 1) * sand_grid.width + (x - 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)],
-						properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)]);
             return true;
         } else if x < sand_grid.width - 1
             && properties
@@ -69,9 +59,8 @@ pub fn fall_left_right(
                 .contains(&future_sand[(y + 1) * sand_grid.width + (x + 1)])
         {
             future_sand[(y + 1) * sand_grid.width + (x + 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)],
-						properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)]);
             return true;
         }
     } else {
@@ -84,9 +73,8 @@ pub fn fall_left_right(
                 .contains(&future_sand[(y + 1) * sand_grid.width + (x + 1)])
         {
             future_sand[(y + 1) * sand_grid.width + (x + 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)],
-						properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)]);
             return true;
         } else if x > 0
             && properties
@@ -97,9 +85,8 @@ pub fn fall_left_right(
                 .contains(&future_sand[(y + 1) * sand_grid.width + (x - 1)])
         {
             future_sand[(y + 1) * sand_grid.width + (x - 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)],
-						properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)]);
             return true;
         }
     }
@@ -124,10 +111,8 @@ pub fn flow_left_right(
                 .contains(&future_sand[y * sand_grid.width + (x - 1)])
         {
             future_sand[y * sand_grid.width + (x - 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[y * sand_grid.width + (x - 1)],
-						properties
-						);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[y * sand_grid.width + (x - 1)]);
             return true;
         } else if x < sand_grid.width - 1
             && properties
@@ -138,9 +123,8 @@ pub fn flow_left_right(
                 .contains(&future_sand[y * sand_grid.width + (x + 1)])
         {
             future_sand[y * sand_grid.width + (x + 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[y * sand_grid.width + (x + 1)],
-						&properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[y * sand_grid.width + (x + 1)]);
             return true;
         }
     } else {
@@ -153,9 +137,8 @@ pub fn flow_left_right(
                 .contains(&future_sand[y * sand_grid.width + (x + 1)])
         {
             future_sand[y * sand_grid.width + (x + 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[y * sand_grid.width + (x + 1)],
-						&properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[y * sand_grid.width + (x + 1)]);
             return true;
         } else if x > 0
             && properties
@@ -166,9 +149,8 @@ pub fn flow_left_right(
                 .contains(&future_sand[y * sand_grid.width + (x - 1)])
         {
             future_sand[y * sand_grid.width + (x - 1)] = 
-				replace(sand_grid.grid[y * sand_grid.width + x],
-						sand_grid.grid[y * sand_grid.width + (x - 1)],
-						&properties);
+				properties.replace(sand_grid.grid[y * sand_grid.width + x],
+						sand_grid.grid[y * sand_grid.width + (x - 1)]);
             return true;
         }
     }
