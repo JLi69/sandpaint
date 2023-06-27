@@ -1,28 +1,59 @@
-use crate::sand::{Sand, SandGrid, SandProperties};
+use super::{sand_properties::SandProperties, Sand, SandGrid};
+
+pub fn swap(
+	x1: usize,
+	y1: usize,
+	x2: usize,
+	y2: usize,
+	sand_grid: &mut SandGrid,
+	properties: &SandProperties) -> bool {	
+	if sand_grid.out_of_bounds(x1 as isize, y1 as isize) ||
+	   sand_grid.out_of_bounds(x2 as isize, y2 as isize) {
+		return false;	
+	}
+
+	if properties.can_sink_in.contains(&sand_grid.get_sand(x2, y2)) {
+		let sand = sand_grid.get_sand(x2, y2);
+		sand_grid.set_sand(x2, y2, sand_grid.get_sand(x1, y1));
+		sand_grid.set_sand(x1, y1, sand);
+		sand_grid.set_updated(x1, y1);
+		sand_grid.set_updated(x2, y2);
+		return true;
+	}
+
+	false
+}
 
 //Returns true if it can move down,
 //false otherwise
 pub fn fall_down(
     x: usize,
     y: usize,
-    sand_grid: &SandGrid,
-    future_sand: &mut [Sand],
+    sand_grid: &mut SandGrid,
     properties: &SandProperties,
 ) -> bool {
+	if sand_grid.get_updated(x, y) {
+		return false;	
+	}
+
     if y == sand_grid.height - 1 {
         return false;
-    }
+    }	
 
-    if properties
-        .can_replace
-        .contains(&sand_grid.grid[(y + 1) * sand_grid.width + x])
-    {
-        future_sand[(y + 1) * sand_grid.width + x] = properties.replace(
-            sand_grid.grid[y * sand_grid.width + x],
-            sand_grid.grid[(y + 1) * sand_grid.width + x],
-        );
+    if sand_grid.space_available(x, y + 1, properties) {
+        sand_grid.set_sand(x, y + 1, properties.replace(
+            sand_grid.get_sand(x, y),
+            sand_grid.get_sand(x, y + 1),
+        ));
+		sand_grid.set_sand(x, y, Sand::Air);
+		sand_grid.set_updated(x, y + 1);
+		sand_grid.set_updated(x, y);
         return true;
     }
+
+	if swap(x, y, x, y + 1, sand_grid, properties) {
+		return true;	
+	}
 
     false
 }
@@ -30,70 +61,71 @@ pub fn fall_down(
 pub fn fall_left_right(
     x: usize,
     y: usize,
-    sand_grid: &SandGrid,
-    future_sand: &mut [Sand],
+    sand_grid: &mut SandGrid,
     properties: &SandProperties,
 ) -> bool {
-    if y == sand_grid.height - 1 {
+    if sand_grid.get_updated(x, y) {
+		return false;	
+	}
+
+	if y == sand_grid.height - 1 {
         return false;
     }
 
     if rand::random() {
-        if x > 0
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[(y + 1) * sand_grid.width + (x - 1)])
-        {
-            future_sand[(y + 1) * sand_grid.width + (x - 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)],
-            );
+        if x > 0 && sand_grid.space_available(x - 1, y + 1, properties) {
+            sand_grid.set_sand(x - 1, y + 1, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x - 1, y + 1),
+            ));
+			sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x - 1, y + 1);
+			sand_grid.set_updated(x, y);
             return true;
-        } else if x < sand_grid.width - 1
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[(y + 1) * sand_grid.width + (x + 1)])
-        {
-            future_sand[(y + 1) * sand_grid.width + (x + 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)],
-            );
+        } else if x < sand_grid.width - 1 && 
+			sand_grid.space_available(x + 1, y + 1, properties) { 
+            sand_grid.set_sand(x + 1, y + 1, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x + 1, y + 1),
+            ));
+			sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x + 1, y + 1);
+			sand_grid.set_updated(x, y);
             return true;
         }
+
+		if swap(x, y, x - 1, y + 1, sand_grid, properties) {
+			return true;	
+		} else if swap(x, y, x + 1, y + 1, sand_grid, properties) {
+			return true;	
+		}
     } else {
-        if x < sand_grid.width - 1
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[(y + 1) * sand_grid.width + (x + 1)])
-        {
-            future_sand[(y + 1) * sand_grid.width + (x + 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[(y + 1) * sand_grid.width + (x + 1)],
-            );
+        if x < sand_grid.width - 1 && 
+			sand_grid.space_available(x + 1, y + 1, properties) {
+            sand_grid.set_sand(x + 1, y + 1, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x + 1, y + 1),
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x + 1, y + 1);
+			sand_grid.set_updated(x, y);
             return true;
-        } else if x > 0
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[(y + 1) * sand_grid.width + (x - 1)])
-        {
-            future_sand[(y + 1) * sand_grid.width + (x - 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[(y + 1) * sand_grid.width + (x - 1)],
-            );
+        } else if x > 0 && sand_grid.space_available(x - 1, y + 1, properties) {
+            sand_grid.set_sand(x - 1, y + 1, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x - 1, y + 1),
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x - 1, y + 1);
+			sand_grid.set_updated(x, y);
             return true;
         }
+
+		if swap(x, y, x + 1, y + 1, sand_grid, properties) {
+			return true;	
+		} else if swap(x, y, x - 1, y + 1, sand_grid, properties) {
+			return true;	
+		}
     }
 
     false
@@ -102,66 +134,68 @@ pub fn fall_left_right(
 pub fn flow_left_right(
     x: usize,
     y: usize,
-    sand_grid: &SandGrid,
-    future_sand: &mut [Sand],
+    sand_grid: &mut SandGrid,
     properties: &SandProperties,
 ) -> bool {
-    if rand::random() {
-        if x > 0
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[y * sand_grid.width + (x - 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[y * sand_grid.width + (x - 1)])
-        {
-            future_sand[y * sand_grid.width + (x - 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[y * sand_grid.width + (x - 1)],
-            );
+    if sand_grid.get_updated(x, y) {
+		return false;	
+	}
+
+	if rand::random() {
+        if x > 0 && sand_grid.space_available(x - 1, y, properties) {
+            sand_grid.set_sand(x - 1, y, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x - 1, y)
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x - 1, y);
+			sand_grid.set_updated(x, y);
             return true;
         } else if x < sand_grid.width - 1
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[y * sand_grid.width + (x + 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[y * sand_grid.width + (x + 1)])
+            && sand_grid.space_available(x + 1, y, properties) 
         {
-            future_sand[y * sand_grid.width + (x + 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[y * sand_grid.width + (x + 1)],
-            );
+            sand_grid.set_sand(x + 1, y, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x + 1, y)
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x + 1, y);
+			sand_grid.set_updated(x, y);
             return true;
         }
+
+		if swap(x, y, x - 1, y, sand_grid, properties) {
+			return true;	
+		} else if swap(x, y, x + 1, y, sand_grid, properties) {
+			return true;	
+		}
     } else {
         if x < sand_grid.width - 1
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[y * sand_grid.width + (x + 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[y * sand_grid.width + (x + 1)])
-        {
-            future_sand[y * sand_grid.width + (x + 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[y * sand_grid.width + (x + 1)],
-            );
+            && sand_grid.space_available(x + 1, y, properties) {
+            sand_grid.set_sand(x + 1, y, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x + 1, y)
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x + 1, y);
+			sand_grid.set_updated(x, y);
             return true;
-        } else if x > 0
-            && properties
-                .can_replace
-                .contains(&sand_grid.grid[y * sand_grid.width + (x - 1)])
-            && properties
-                .can_replace
-                .contains(&future_sand[y * sand_grid.width + (x - 1)])
-        {
-            future_sand[y * sand_grid.width + (x - 1)] = properties.replace(
-                sand_grid.grid[y * sand_grid.width + x],
-                sand_grid.grid[y * sand_grid.width + (x - 1)],
-            );
+        } else if x > 0 && sand_grid.space_available(x - 1, y, properties) {
+            sand_grid.set_sand(x - 1, y, properties.replace(
+                sand_grid.get_sand(x, y),
+                sand_grid.get_sand(x - 1, y)
+            ));
+            sand_grid.set_sand(x, y, Sand::Air);
+			sand_grid.set_updated(x - 1, y);
+			sand_grid.set_updated(x, y);
             return true;
         }
+
+		if swap(x, y, x + 1, y, sand_grid, properties) {
+			return true;	
+		} else if swap(x, y, x - 1, y, sand_grid, properties) {
+			return true;	
+		}
     }
 
     false
@@ -177,11 +211,11 @@ pub fn count_neighbors(x: usize, y: usize, sand_grid: &SandGrid, sand: Sand) -> 
         let nx = x as isize + NEIGHBOR_X[i];
         let ny = y as isize + NEIGHBOR_Y[i];
 
-        if nx < 0 || ny < 0 || nx >= sand_grid.width as isize || ny >= sand_grid.height as isize {
+        if sand_grid.out_of_bounds(nx, ny) {
             continue;
         }
 
-        if sand_grid.grid[(sand_grid.width as isize * ny + nx) as usize] == sand {
+        if sand_grid.get_sand(nx as usize, ny as usize) == sand {
             count += 1;
         }
     }
