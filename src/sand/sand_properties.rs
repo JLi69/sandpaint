@@ -4,7 +4,7 @@ use std::collections::{HashMap, HashSet};
 pub struct SandProperties {
     pub can_replace: HashSet<Sand>,
     pub replace_with: HashMap<Sand, Sand>,
-	pub can_sink_in: HashSet<Sand>
+    pub can_sink_in: HashSet<Sand>,
 }
 
 pub struct SandSimulationProperties(HashMap<Sand, SandProperties>);
@@ -14,14 +14,14 @@ impl SandProperties {
         SandProperties {
             can_replace: HashSet::<Sand>::new(),
             replace_with: HashMap::<Sand, Sand>::new(),
-			can_sink_in: HashSet::<Sand>::new()
+            can_sink_in: HashSet::<Sand>::new(),
         }
     }
 
     pub fn from_vecs(
         can_replace: Option<Vec<Sand>>,
         replace_with: Option<Vec<(Sand, Sand)>>,
-		can_sink_in: Option<Vec<Sand>>
+        can_sink_in: Option<Vec<Sand>>,
     ) -> Self {
         let mut properties = Self::empty();
 
@@ -45,14 +45,14 @@ impl SandProperties {
             _ => {}
         }
 
-		match can_sink_in {
-			Some(can_sink_in) => {
-				can_sink_in
-					.into_iter()
-					.for_each(|sand| properties.add_can_sink_in(sand));
-			}
-			_ => {}	
-		}
+        match can_sink_in {
+            Some(can_sink_in) => {
+                can_sink_in
+                    .into_iter()
+                    .for_each(|sand| properties.add_can_sink_in(sand));
+            }
+            _ => {}
+        }
 
         properties
     }
@@ -65,9 +65,9 @@ impl SandProperties {
         self.replace_with.insert(can_replace, replace_with);
     }
 
-	pub fn add_can_sink_in(&mut self, sand: Sand) {
-		self.can_sink_in.insert(sand);	
-	}
+    pub fn add_can_sink_in(&mut self, sand: Sand) {
+        self.can_sink_in.insert(sand);
+    }
 
     pub fn replace(&self, sand: Sand, sand_to_replace: Sand) -> Sand {
         match self.replace_with.get(&sand_to_replace) {
@@ -90,7 +90,8 @@ impl SandSimulationProperties {
         let replace_with = vec![(Sand::Acid, Sand::Acid)];
         let can_sink_in = vec![Sand::Water, Sand::Oil, Sand::Acid];
 
-        let sand_property = SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        let sand_property =
+            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
         sand_sim_properties.add_sand_property(Sand::Sand, sand_property);
 
         //Water
@@ -98,7 +99,8 @@ impl SandSimulationProperties {
         let replace_with = vec![(Sand::Lava, Sand::Stone)];
         let can_sink_in = vec![Sand::Oil];
 
-        let sand_property = SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        let sand_property =
+            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
         sand_sim_properties.add_sand_property(Sand::Water, sand_property);
 
         //Wall
@@ -130,7 +132,8 @@ impl SandSimulationProperties {
             (Sand::Stone, Sand::Air),
         ];
 
-        let sand_property = SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        let sand_property =
+            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
         sand_sim_properties.add_sand_property(Sand::Acid, sand_property);
 
         //Lava
@@ -138,7 +141,8 @@ impl SandSimulationProperties {
         let replace_with = vec![(Sand::Water, Sand::Stone)];
         let can_sink_in = vec![Sand::Water, Sand::Acid, Sand::Oil];
 
-        let sand_property = SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        let sand_property =
+            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
         sand_sim_properties.add_sand_property(Sand::Lava, sand_property);
 
         //Stone
@@ -150,9 +154,8 @@ impl SandSimulationProperties {
 
         //Explosive
         let can_sink_in = vec![Sand::Oil, Sand::Water, Sand::Acid];
-        let can_replace = vec![Sand::Water, Sand::Oil];
 
-        let sand_property = SandProperties::from_vecs(Some(can_replace), None, Some(can_sink_in));
+        let sand_property = SandProperties::from_vecs(None, None, Some(can_sink_in));
         sand_sim_properties.add_sand_property(Sand::Explosive, sand_property);
 
         //Explosion
