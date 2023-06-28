@@ -56,7 +56,7 @@ pub fn fall_down(
 
     if swap(x, y, x, y + 1, sand_grid, properties) {
         return true;
-    } 
+    }
 
     false
 }
@@ -98,16 +98,16 @@ pub fn fall_left_right(
             return true;
         }
 
-        if swap(x, y, x - 1, y + 1, sand_grid, properties) {
-			if sand_grid.get_sand(x - 1, y) == Sand::Air {
-				swap(x - 1, y, x, y, sand_grid, properties);
-			}
-			return true;
+        if x > 0 && swap(x, y, x - 1, y + 1, sand_grid, properties) {
+            if sand_grid.get_sand(x - 1, y) == Sand::Air {
+                swap(x - 1, y, x, y, sand_grid, properties);
+            }
+            return true;
         } else if swap(x, y, x + 1, y + 1, sand_grid, properties) {
             if sand_grid.get_sand(x + 1, y) == Sand::Air {
-				swap(x + 1, y, x, y, sand_grid, properties);
-			}
-			return true;
+                swap(x + 1, y, x, y, sand_grid, properties);
+            }
+            return true;
         }
     } else {
         if x < sand_grid.width - 1 && sand_grid.space_available(x + 1, y + 1, properties) {
@@ -134,14 +134,14 @@ pub fn fall_left_right(
 
         if swap(x, y, x + 1, y + 1, sand_grid, properties) {
             if sand_grid.get_sand(x + 1, y) == Sand::Air {
-				swap(x + 1, y, x, y, sand_grid, properties);
-			}
-			return true;
-        } else if swap(x, y, x - 1, y + 1, sand_grid, properties) {
+                swap(x + 1, y, x, y, sand_grid, properties);
+            }
+            return true;
+        } else if x > 0 && swap(x, y, x - 1, y + 1, sand_grid, properties) {
             if sand_grid.get_sand(x - 1, y) == Sand::Air {
-				swap(x - 1, y, x, y, sand_grid, properties);
-			}
-			return true;
+                swap(x - 1, y, x, y, sand_grid, properties);
+            }
+            return true;
         }
     }
 
@@ -181,7 +181,7 @@ pub fn flow_left_right(
             return true;
         }
 
-        if swap(x, y, x - 1, y, sand_grid, properties) {
+        if x > 0 && swap(x, y, x - 1, y, sand_grid, properties) {
             return true;
         } else if swap(x, y, x + 1, y, sand_grid, properties) {
             return true;
@@ -211,7 +211,7 @@ pub fn flow_left_right(
 
         if swap(x, y, x + 1, y, sand_grid, properties) {
             return true;
-        } else if swap(x, y, x - 1, y, sand_grid, properties) {
+        } else if x > 0 && swap(x, y, x - 1, y, sand_grid, properties) {
             return true;
         }
     }

@@ -21,7 +21,7 @@ pub enum Sand {
     Stone,
     Explosive,
     Explosion,
-	OutOfBounds,
+    OutOfBounds,
 }
 
 #[derive(PartialEq, Clone)]
@@ -171,7 +171,7 @@ impl SandGrid {
             _ => return,
         }
 
-		let sand = self.get_sand(x, y);
+        let sand = self.get_sand(x, y);
 
         match sand {
             Sand::Sand => {
@@ -223,8 +223,8 @@ impl SandGrid {
             _ => {}
         }
 
-		if self.get_sand(x, y) != sand {
-			self.update_pixel(x, y, &sand_sim_properties);
-		}
+        if self.get_sand(x, y) != sand {
+            self.update_pixel(x, y, &sand_sim_properties);
+        }
     }
 }

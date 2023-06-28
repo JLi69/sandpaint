@@ -46,27 +46,27 @@ pub fn update_liquid(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &
         return;
     }
 
-	if sand_physics::fall_down(x, y, sand_grid, properties) {
-		return;
-	} 
+    if sand_physics::fall_down(x, y, sand_grid, properties) {
+        return;
+    }
 
-	if rand::random() {
-		if sand_physics::flow_left_right(x, y, sand_grid, properties) {
-			return;
-		}
-
-		if sand_physics::fall_left_right(x, y, sand_grid, properties) {
-            return;
-        }
-	} else {
-		if sand_physics::fall_left_right(x, y, sand_grid, properties) {
+    if rand::random() {
+        if sand_physics::flow_left_right(x, y, sand_grid, properties) {
             return;
         }
 
-		if sand_physics::flow_left_right(x, y, sand_grid, properties) {
-			return;
-		}	
-	}
+        if sand_physics::fall_left_right(x, y, sand_grid, properties) {
+            return;
+        }
+    } else {
+        if sand_physics::fall_left_right(x, y, sand_grid, properties) {
+            return;
+        }
+
+        if sand_physics::flow_left_right(x, y, sand_grid, properties) {
+            return;
+        }
+    }
 }
 
 pub fn explode(
