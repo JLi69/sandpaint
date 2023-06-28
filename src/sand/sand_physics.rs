@@ -18,7 +18,7 @@ pub fn swap(
         let sand = sand_grid.get_sand(x2, y2);
         sand_grid.set_sand(x2, y2, sand_grid.get_sand(x1, y1));
         sand_grid.set_sand(x1, y1, sand);
-        sand_grid.set_updated(x1, y1);
+        //sand_grid.set_updated(x1, y1);
         sand_grid.set_updated(x2, y2);
         return true;
     }
@@ -54,9 +54,9 @@ pub fn fall_down(
         return true;
     }
 
-    /*if swap(x, y, x, y + 1, sand_grid, properties) {
+    if swap(x, y, x, y + 1, sand_grid, properties) {
         return true;
-    }*/
+    } 
 
     false
 }
@@ -99,9 +99,15 @@ pub fn fall_left_right(
         }
 
         if swap(x, y, x - 1, y + 1, sand_grid, properties) {
-            return true;
+			if sand_grid.get_sand(x - 1, y) == Sand::Air {
+				swap(x - 1, y, x, y, sand_grid, properties);
+			}
+			return true;
         } else if swap(x, y, x + 1, y + 1, sand_grid, properties) {
-            return true;
+            if sand_grid.get_sand(x + 1, y) == Sand::Air {
+				swap(x + 1, y, x, y, sand_grid, properties);
+			}
+			return true;
         }
     } else {
         if x < sand_grid.width - 1 && sand_grid.space_available(x + 1, y + 1, properties) {
@@ -127,9 +133,15 @@ pub fn fall_left_right(
         }
 
         if swap(x, y, x + 1, y + 1, sand_grid, properties) {
-            return true;
+            if sand_grid.get_sand(x + 1, y) == Sand::Air {
+				swap(x + 1, y, x, y, sand_grid, properties);
+			}
+			return true;
         } else if swap(x, y, x - 1, y + 1, sand_grid, properties) {
-            return true;
+            if sand_grid.get_sand(x - 1, y) == Sand::Air {
+				swap(x - 1, y, x, y, sand_grid, properties);
+			}
+			return true;
         }
     }
 

@@ -21,6 +21,7 @@ pub enum Sand {
     Stone,
     Explosive,
     Explosion,
+	OutOfBounds,
 }
 
 #[derive(PartialEq, Clone)]
@@ -49,7 +50,7 @@ pub fn sand_color(sand: Sand) -> Color {
         Sand::Stone => Color::RGB(180, 180, 180),
         Sand::Explosive => Color::RGB(255, 64, 0),
         Sand::Explosion => Color::RED,
-        //_ => Color::WHITE,
+        _ => Color::WHITE,
     }
 }
 
@@ -93,7 +94,7 @@ impl SandGrid {
 
     pub fn get_sand(&self, x: usize, y: usize) -> Sand {
         if self.out_of_bounds(x as isize, y as isize) {
-            return Sand::Air;
+            return Sand::OutOfBounds;
         }
 
         self.grid[y * self.width + x].sand_type
@@ -170,7 +171,9 @@ impl SandGrid {
             _ => return,
         }
 
-        match self.get_sand(x, y) {
+		let sand = self.get_sand(x, y);
+
+        match sand {
             Sand::Sand => {
                 update_sand::update_particle(x, y, self, sand_property);
             }
@@ -219,5 +222,9 @@ impl SandGrid {
             }
             _ => {}
         }
+
+		if self.get_sand(x, y) != sand {
+			self.update_pixel(x, y, &sand_sim_properties);
+		}
     }
 }
