@@ -94,8 +94,8 @@ fn display_sand_grid(pixels: &mut [u8], sand_grid: &SandGrid) {
             let pixel_pos = sand_grid.width * 4 * y + x * 4;
             pixels[pixel_pos + 1] = color.r;
             pixels[pixel_pos + 2] = color.g;
-            pixels[pixel_pos + 3] = color.b;
-        }
+            pixels[pixel_pos + 3] = color.b;	
+		}
     }
 }
 

@@ -28,6 +28,7 @@ pub enum Sand {
 struct SandParticle {
     sand_type: Sand,
     updated: bool,
+	can_update: bool
 }
 
 pub struct SandGrid {
@@ -68,7 +69,8 @@ impl SandGrid {
             grid: vec![
                 SandParticle {
                     sand_type: Sand::Air,
-                    updated: false
+                    updated: false,
+					can_update: false
                 };
                 w * h
             ],
@@ -87,6 +89,8 @@ impl SandGrid {
 
                 if inside_circle(posx, posy, radius as i32, x, y) {
                     self.set_sand(x as usize, y as usize, sand);
+					self.grid[y as usize * self.width + x as usize].can_update = true;
+					self.grid[y as usize * self.width + x as usize].updated = true;
                 }
             }
         }
@@ -116,7 +120,15 @@ impl SandGrid {
         self.grid[y * self.width + x].updated = true;
     }
 
-    pub fn get_updated(&mut self, x: usize, y: usize) -> bool {
+	pub fn set_can_update(&mut self, x: usize, y: usize) {
+		if self.out_of_bounds(x as isize, y as isize) {
+            return;
+        }
+
+        self.grid[y * self.width + x].can_update = true;
+	}	
+
+    pub fn get_updated(&self, x: usize, y: usize) -> bool {
         if self.out_of_bounds(x as isize, y as isize) {
             return false;
         }
@@ -151,12 +163,32 @@ impl SandGrid {
         }
 
         for i in 0..self.grid.len() {
-            self.grid[i].updated = false;
+			let (x, y) = (i % self.width, i / self.width);
+
+            if self.grid[i].updated || self.grid[i].sand_type == Sand::Fire {
+				const ADJ_X: [isize; 9] = [ 0, 0, -1, 1, -1, -1, 1, 1, 0 ];
+				const ADJ_Y: [isize; 9] = [ -1, 1, 0, 0, -1, 1, -1, 1, 0 ];
+
+				for i in 0..8 {
+					let posx = x as isize + ADJ_X[i];
+					let posy = y as isize + ADJ_Y[i];
+					if self.out_of_bounds(posx, posy) {
+						continue;	
+					}
+					self.grid[posy as usize * self.width + posx as usize].can_update = true;
+				}
+			}
+
+			self.grid[i].updated = false;
         }
     }
 
     fn update_pixel(&mut self, x: usize, y: usize, sand_sim_properties: &SandSimulationProperties) {
-        if self.grid[y * self.width + x].updated {
+		if !self.grid[self.width * y + x].can_update {
+			return;	
+		}
+
+        if self.get_updated(x, y) {
             return;
         }
 
@@ -171,7 +203,7 @@ impl SandGrid {
             _ => return,
         }
 
-        let sand = self.get_sand(x, y);
+        let sand = self.get_sand(x, y);	
 
         match sand {
             Sand::Sand => {
@@ -226,5 +258,24 @@ impl SandGrid {
         if self.get_sand(x, y) != sand {
             self.update_pixel(x, y, &sand_sim_properties);
         }
+
+		const ADJ_X: [isize; 8] = [ 0, 0, -1, 1, -1, -1, 1, 1 ];
+		const ADJ_Y: [isize; 8] = [ -1, 1, 0, 0, -1, 1, -1, 1 ];
+
+		let mut space_nearby = false;
+		for i in 0..8 {
+			let posx = (x as isize + ADJ_X[i]) as usize;
+			let posy = (y as isize + ADJ_Y[i]) as usize;
+			if self.space_available(posx, posy, sand_property) ||
+			   sand_property.can_sink_in.contains(&self.get_sand(posx, posy)) {
+				space_nearby = true;
+				break;
+			}
+		}
+
+		if !space_nearby && !self.get_updated(x, y) {
+			self.grid[self.width * y + x].can_update = false;
+			return;	
+		}
     }
 }

@@ -86,91 +86,114 @@ impl SandSimulationProperties {
         let mut sand_sim_properties = Self::new();
 
         //Sand
-        let can_replace = vec![Sand::Fire];
-        let replace_with = vec![(Sand::Acid, Sand::Acid)];
-        let can_sink_in = vec![Sand::Water, Sand::Oil, Sand::Acid];
+		{
+			let can_replace = vec![Sand::Fire];
+        	let replace_with = vec![(Sand::Acid, Sand::Acid)];
+        	let can_sink_in = vec![Sand::Water, Sand::Oil, Sand::Acid];
 
-        let sand_property =
-            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Sand, sand_property);
+        	let sand_property =
+        	    SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        	sand_sim_properties.add_sand_property(Sand::Sand, sand_property);
+		}
 
         //Water
-        let can_replace = vec![Sand::Fire, Sand::Lava];
-        let replace_with = vec![(Sand::Lava, Sand::Stone)];
-        let can_sink_in = vec![Sand::Oil];
+		{
+			let can_replace = vec![Sand::Fire, Sand::Lava];
+        	let replace_with = vec![(Sand::Lava, Sand::Stone)];
+        	let can_sink_in = vec![Sand::Oil];
 
-        let sand_property =
-            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Water, sand_property);
+        	let sand_property =
+        	    SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        	sand_sim_properties.add_sand_property(Sand::Water, sand_property);
+		}
 
         //Wall
-        let sand_property = SandProperties::from_vecs(None, None, None);
-        sand_sim_properties.add_sand_property(Sand::Wall, sand_property);
+		{
+			let sand_property = SandProperties::from_vecs(None, None, None);
+        	sand_sim_properties.add_sand_property(Sand::Wall, sand_property);
+		}
 
         //Wood
-        let sand_property = SandProperties::from_vecs(None, None, None);
-        sand_sim_properties.add_sand_property(Sand::Wood, sand_property);
+		{
+			let sand_property = SandProperties::from_vecs(None, None, None);
+			sand_sim_properties.add_sand_property(Sand::Wood, sand_property);
+		}
 
         //Fire
-        let can_replace = vec![Sand::Oil, Sand::Wood];
-        let sand_property = SandProperties::from_vecs(Some(can_replace), None, None);
-        sand_sim_properties.add_sand_property(Sand::Fire, sand_property);
+		{
+			let can_replace = vec![Sand::Oil, Sand::Wood];
+        	let sand_property = SandProperties::from_vecs(Some(can_replace), None, None);
+        	sand_sim_properties.add_sand_property(Sand::Fire, sand_property);
+		}
 
         //Oil
-        let can_replace = vec![Sand::Fire];
-        let sand_property = SandProperties::from_vecs(Some(can_replace), None, None);
-        sand_sim_properties.add_sand_property(Sand::Oil, sand_property);
+		{
+			let can_replace = vec![Sand::Fire];
+			let sand_property = SandProperties::from_vecs(Some(can_replace), None, None);
+			sand_sim_properties.add_sand_property(Sand::Oil, sand_property);
+		}
 
         //Acid
-        let can_sink_in = vec![Sand::Water, Sand::Oil];
-        let can_replace = vec![Sand::Wood, Sand::Sand, Sand::Fire, Sand::Stone];
+		{
+			let can_sink_in = vec![Sand::Water, Sand::Oil];
+        	let can_replace = vec![Sand::Wood, Sand::Sand, Sand::Fire, Sand::Stone];
 
-        let replace_with = vec![
-            (Sand::Wood, Sand::Air),
-            (Sand::Sand, Sand::Air),
-            (Sand::Fire, Sand::Air),
-            (Sand::Stone, Sand::Air),
-        ];
+        	let replace_with = vec![
+        	    (Sand::Wood, Sand::Air),
+        	    (Sand::Sand, Sand::Air),
+        	    (Sand::Fire, Sand::Air),
+        	    (Sand::Stone, Sand::Air),
+        	];
 
-        let sand_property =
-            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Acid, sand_property);
+			let sand_property =
+				SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+			sand_sim_properties.add_sand_property(Sand::Acid, sand_property);
+		}
 
         //Lava
-        let can_replace = vec![Sand::Air, Sand::Water];
-        let replace_with = vec![(Sand::Water, Sand::Stone)];
-        let can_sink_in = vec![Sand::Water, Sand::Acid, Sand::Oil];
+		{
+			let can_replace = vec![Sand::Water];
+        	let replace_with = vec![(Sand::Water, Sand::Stone)];
+        	let can_sink_in = vec![Sand::Water, Sand::Acid, Sand::Oil];
 
-        let sand_property =
-            SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Lava, sand_property);
+        	let sand_property =
+        	    SandProperties::from_vecs(Some(can_replace), Some(replace_with), Some(can_sink_in));
+        	sand_sim_properties.add_sand_property(Sand::Lava, sand_property);
+		}
 
         //Stone
-        let can_sink_in = vec![Sand::Oil, Sand::Water, Sand::Acid];
-        let replace_with = vec![(Sand::Acid, Sand::Acid)];
+		{
+			let can_sink_in = vec![Sand::Oil, Sand::Water, Sand::Acid];
+        	let replace_with = vec![(Sand::Acid, Sand::Acid)];
 
-        let sand_property = SandProperties::from_vecs(None, Some(replace_with), Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Stone, sand_property);
+        	let sand_property = SandProperties::from_vecs(None, Some(replace_with), Some(can_sink_in));
+        	sand_sim_properties.add_sand_property(Sand::Stone, sand_property);
+		}
 
         //Explosive
-        let can_sink_in = vec![Sand::Oil, Sand::Water, Sand::Acid];
+		{
+			let can_replace = vec![Sand::Fire];
+        	let can_sink_in = vec![Sand::Oil, Sand::Water, Sand::Acid];
 
-        let sand_property = SandProperties::from_vecs(None, None, Some(can_sink_in));
-        sand_sim_properties.add_sand_property(Sand::Explosive, sand_property);
-
+        	let sand_property = SandProperties::from_vecs(Some(can_replace), None, Some(can_sink_in));
+        	sand_sim_properties.add_sand_property(Sand::Explosive, sand_property);
+		}
+		
         //Explosion
-        let can_replace = vec![
-            Sand::Water,
-            Sand::Wood,
-            Sand::Fire,
-            Sand::Sand,
-            Sand::Explosive,
-            Sand::Lava,
-            Sand::Oil,
-        ];
+		{
+			let can_replace = vec![
+        	    Sand::Water,
+        	    Sand::Wood,
+        	    Sand::Fire,
+        	    Sand::Sand,
+        	    Sand::Explosive,
+        	    Sand::Lava,
+        	    Sand::Oil,
+        	];
 
-        let explosion_property = SandProperties::from_vecs(Some(can_replace), None, None);
-        sand_sim_properties.add_sand_property(Sand::Explosion, explosion_property);
+        	let explosion_property = SandProperties::from_vecs(Some(can_replace), None, None);
+        	sand_sim_properties.add_sand_property(Sand::Explosion, explosion_property);
+		}
 
         sand_sim_properties
     }

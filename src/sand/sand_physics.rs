@@ -14,11 +14,12 @@ pub fn swap(
         return false;
     }
 
-    if properties.can_sink_in.contains(&sand_grid.get_sand(x2, y2)) {
+    if properties.can_sink_in.contains(&sand_grid.get_sand(x2, y2)) &&
+	   rand::random() {
         let sand = sand_grid.get_sand(x2, y2);
         sand_grid.set_sand(x2, y2, sand_grid.get_sand(x1, y1));
         sand_grid.set_sand(x1, y1, sand);
-        //sand_grid.set_updated(x1, y1);
+        sand_grid.set_updated(x1, y1);
         sand_grid.set_updated(x2, y2);
         return true;
     }
