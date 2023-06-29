@@ -14,8 +14,7 @@ pub fn swap(
         return false;
     }
 
-    if properties.can_sink_in.contains(&sand_grid.get_sand(x2, y2)) &&
-	   rand::random() {
+    if properties.can_sink_in.contains(&sand_grid.get_sand(x2, y2)) && rand::random() {
         let sand = sand_grid.get_sand(x2, y2);
         sand_grid.set_sand(x2, y2, sand_grid.get_sand(x1, y1));
         sand_grid.set_sand(x1, y1, sand);

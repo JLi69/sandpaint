@@ -105,7 +105,7 @@ pub fn explode(
             {
                 sand_grid.set_sand(trans_x, trans_y, Sand::Fire);
                 sand_grid.set_updated(trans_x, trans_y);
-				sand_grid.set_can_update(trans_x, trans_y);
+                sand_grid.set_can_update(trans_x, trans_y);
             } else {
                 break;
             }
@@ -169,7 +169,7 @@ pub fn update_fire(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &Sa
             } else if sand_grid.get_sand(posx, posy) == Sand::Air && rand::random::<f64>() < 0.065 {
                 sand_grid.set_sand(posx, posy, Sand::Fire);
                 sand_grid.set_updated(posx, posy);
-				sand_grid.set_can_update(posx, posy);
+                sand_grid.set_can_update(posx, posy);
             }
         }
     }
@@ -177,9 +177,9 @@ pub fn update_fire(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &Sa
     if !((flammable_count >= 1)
         || (count_neighbors(x, y, sand_grid, Sand::Fire) >= 2 && rand::random::<f64>() < 0.8))
     {
-        sand_grid.set_sand(x, y, Sand::Air); 
-		sand_grid.set_updated(x, y);
-	}
+        sand_grid.set_sand(x, y, Sand::Air);
+        sand_grid.set_updated(x, y);
+    }
 }
 
 //Transforms the cell at the position based on the number
