@@ -90,7 +90,7 @@ impl SandGrid {
                 if inside_circle(posx, posy, radius as i32, x, y) {
                     self.set_sand(x as usize, y as usize, sand);
                     self.grid[y as usize * self.width + x as usize].can_update = true;
-                    self.grid[y as usize * self.width + x as usize].updated = true;
+                    self.grid[y as usize * self.width + x as usize].updated = false;
                 }
             }
         }

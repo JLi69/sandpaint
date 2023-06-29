@@ -223,9 +223,12 @@ fn main() -> Result<(), String> {
     ];
 
     while !sim_clock.quit {
-        let start = Instant::now();
+        let start = Instant::now(); 
 
-        //Handle mouse events
+        //Update sand simulation
+        update_sand(&mut sand_grid, &sand_sim_properties, &mut sim_clock);
+
+		//Handle mouse events
         let mouse_state = event_pump.mouse_state();
         selected_sand_ind = mouse_select_menu(&event_pump, &sand_menu, selected_sand_ind);
         mouse_place_sand(
@@ -235,9 +238,6 @@ fn main() -> Result<(), String> {
             selected_sand_ind,
             radius,
         );
-
-        //Update sand simulation
-        update_sand(&mut sand_grid, &sand_sim_properties, &mut sim_clock);
 
         //Display sand grid
         canvas.clear();
