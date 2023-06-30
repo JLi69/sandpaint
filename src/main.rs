@@ -3,7 +3,7 @@
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::{Color, PixelFormatEnum};
-use sdl2::rect::Rect;
+use sdl2::rect::{Point, Rect};
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 use sdl2::EventPump;
@@ -44,10 +44,11 @@ fn display_sand_select(
     sand_menu: &[Sand],
     selected_ind: usize,
 ) -> Result<(), String> {
+    let canvas_dimensions = canvas.output_size()?;
     //Display the menu
     canvas.set_draw_color(Color::RGB(64, 64, 64));
     canvas
-        .fill_rect(Rect::new(0, 0, 800, 16))
+        .fill_rect(Rect::new(0, 0, canvas_dimensions.0, 16))
         .map_err(|e| e.to_string())?;
     for i in 0..sand_menu.len() {
         canvas.set_draw_color(sand::sand_color(sand_menu[i]));
@@ -63,6 +64,28 @@ fn display_sand_select(
     }
 
     Ok(())
+}
+
+fn calculate_display_rect(canvas: &Canvas<Window>) -> Rect {
+    let canvas_dimensions = canvas.output_size();
+
+    match canvas_dimensions {
+        Ok((w, h)) => {
+            if w * 3 / 4 > (h - 16) {
+                return Rect::from_center(
+                    Point::new(w as i32 / 2, h as i32 / 2 + 8),
+                    (h - 16) * 4 / 3,
+                    h - 16,
+                );
+            } else {
+                return Rect::from_center(Point::new(w as i32 / 2, h as i32 / 2 + 8), w, w * 3 / 4);
+            }
+        }
+        Err(msg) => {
+            println!("{msg}");
+            Rect::new(0, 0, 0, 0)
+        }
+    }
 }
 
 fn update_sand(
@@ -139,6 +162,7 @@ fn mouse_place_sand(
     sand_menu: &[Sand],
     selected_ind: usize,
     radius: u32,
+    display_rect: &Rect,
 ) {
     let mouse_state = event_pump.mouse_state();
 
@@ -151,10 +175,10 @@ fn mouse_place_sand(
 
     //Place sand
     if mouse_state.left() {
-        let scalex = 800 / sand_grid.width;
-        let scaley = 600 / sand_grid.height;
-        let mousex = mouse_state.x() / scalex as i32;
-        let mousey = mouse_state.y() / scaley as i32;
+        let mousex = ((mouse_state.x() - display_rect.x) as f64 / display_rect.w as f64
+            * sand_grid.width as f64) as i32;
+        let mousey = ((mouse_state.y() - display_rect.y) as f64 / display_rect.h as f64
+            * sand_grid.height as f64) as i32;
         sand_grid.place_sand(sand_menu[selected_ind], mousex, mousey, radius);
     }
 }
@@ -177,10 +201,14 @@ fn main() -> Result<(), String> {
     const HEIGHT: usize = 300;
     let ctx = sdl2::init().map_err(|e| e.to_string())?;
     let vid_subsystem = ctx.video().map_err(|e| e.to_string())?;
-    let window = vid_subsystem
-        .window("Sandpaint", 800, 600)
+    let mut window = vid_subsystem
+        .window("Sandpaint", 800, 616)
         .position_centered()
+        .resizable()
         .build()
+        .map_err(|e| e.to_string())?;
+    window
+        .set_minimum_size(400, 316)
         .map_err(|e| e.to_string())?;
     let mut canvas = window
         .into_canvas()
@@ -189,11 +217,14 @@ fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let mut event_pump = ctx.event_pump().map_err(|e| e.to_string())?;
     let texture_creator = canvas.texture_creator();
-    let mut sand_texture = texture_creator
-        .create_texture_streaming(PixelFormatEnum::BGRA8888, WIDTH as u32, HEIGHT as u32)
-        .map_err(|e| e.to_string())?;
-
     let mut sand_grid = SandGrid::new(WIDTH, HEIGHT);
+    let mut sand_texture = texture_creator
+        .create_texture_streaming(
+            PixelFormatEnum::BGRA8888,
+            sand_grid.width as u32,
+            sand_grid.height as u32,
+        )
+        .map_err(|e| e.to_string())?;
 
     let mut selected_sand_ind = 0;
     let mut radius = 4;
@@ -223,12 +254,14 @@ fn main() -> Result<(), String> {
     ];
 
     while !sim_clock.quit {
-        let start = Instant::now(); 
+        let start = Instant::now();
+
+        let display_rect = calculate_display_rect(&canvas);
 
         //Update sand simulation
         update_sand(&mut sand_grid, &sand_sim_properties, &mut sim_clock);
 
-		//Handle mouse events
+        //Handle mouse events
         let mouse_state = event_pump.mouse_state();
         selected_sand_ind = mouse_select_menu(&event_pump, &sand_menu, selected_sand_ind);
         mouse_place_sand(
@@ -237,22 +270,24 @@ fn main() -> Result<(), String> {
             &sand_menu,
             selected_sand_ind,
             radius,
+            &display_rect,
         );
 
         //Display sand grid
+        canvas.set_draw_color(Color::RGB(64, 64, 64));
         canvas.clear();
         sand_texture
             .with_lock(None, |pixels: &mut [u8], _pitch: usize| {
                 display_sand_grid(pixels, &sand_grid);
-                let scalex = (800 / WIDTH) as isize;
-                let scaley = (600 / HEIGHT) as isize;
-                let mousex = mouse_state.x() as isize / scalex;
-                let mousey = mouse_state.y() as isize / scaley;
+                let mousex = ((mouse_state.x() - display_rect.x) as f64 / display_rect.w as f64
+                    * sand_grid.width as f64) as isize;
+                let mousey = ((mouse_state.y() - display_rect.y) as f64 / display_rect.h as f64
+                    * sand_grid.height as f64) as isize;
                 display_brush(pixels, mousex, mousey, radius, &sand_grid);
             })
             .map_err(|e| e.to_string())?;
         canvas
-            .copy(&sand_texture, None, None)
+            .copy(&sand_texture, None, display_rect)
             .map_err(|e| e.to_string())?;
         //Display Menu
         display_sand_select(&mut canvas, &sand_menu, selected_sand_ind)

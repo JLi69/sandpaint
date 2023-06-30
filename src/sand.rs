@@ -91,6 +91,18 @@ impl SandGrid {
                     self.set_sand(x as usize, y as usize, sand);
                     self.grid[y as usize * self.width + x as usize].can_update = true;
                     self.grid[y as usize * self.width + x as usize].updated = false;
+
+                    const ADJ_X: [isize; 9] = [0, 0, -1, 1, -1, -1, 1, 1, 0];
+                    const ADJ_Y: [isize; 9] = [-1, 1, 0, 0, -1, 1, -1, 1, 0];
+
+                    for i in 0..8 {
+                        let posx = x as isize + ADJ_X[i];
+                        let posy = y as isize + ADJ_Y[i];
+                        if self.out_of_bounds(posx, posy) {
+                            continue;
+                        }
+                        self.grid[posy as usize * self.width + posx as usize].can_update = true;
+                    }
                 }
             }
         }
