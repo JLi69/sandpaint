@@ -191,6 +191,7 @@ impl SandSimulationProperties {
                 Sand::Explosive,
                 Sand::Lava,
                 Sand::Oil,
+                Sand::Acid,
             ];
 
             let explosion_property = SandProperties::from_vecs(Some(can_replace), None, None);

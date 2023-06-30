@@ -99,14 +99,8 @@ pub fn fall_left_right(
         }
 
         if x > 0 && swap(x, y, x - 1, y + 1, sand_grid, properties) {
-            if sand_grid.get_sand(x - 1, y) == Sand::Air {
-                swap(x - 1, y, x, y, sand_grid, properties);
-            }
             return true;
         } else if swap(x, y, x + 1, y + 1, sand_grid, properties) {
-            if sand_grid.get_sand(x + 1, y) == Sand::Air {
-                swap(x + 1, y, x, y, sand_grid, properties);
-            }
             return true;
         }
     } else {

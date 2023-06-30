@@ -69,47 +69,58 @@ pub fn update_liquid(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &
     }
 }
 
+pub fn cast_ray(
+    x: usize,
+    y: usize,
+    angle: f64,
+    sand_grid: &mut SandGrid,
+    properties: &SandProperties,
+    radius: usize,
+) {
+    let mut posx = 0.0f64;
+    let mut posy = 0.0f64;
+    while (posx * posx + posy * posy).sqrt() < radius as f64 {
+        posx += angle.cos() * 2.0;
+        posy += angle.sin() * 2.0;
+        let trans_x = posx + x as f64;
+        let trans_y = posy + y as f64;
+
+        if trans_x < 0.0
+            || trans_y < 0.0
+            || trans_x >= sand_grid.width as f64
+            || trans_y >= sand_grid.height as f64
+        {
+            return;
+        }
+
+        let trans_x = trans_x.floor() as usize;
+        let trans_y = trans_y.floor() as usize;
+
+        if properties
+            .can_replace
+            .contains(&sand_grid.get_sand(trans_x, trans_y))
+        {
+            sand_grid.set_sand(trans_x, trans_y, Sand::Fire);
+            sand_grid.set_updated(trans_x, trans_y);
+            sand_grid.set_can_update(trans_x, trans_y);
+        } else {
+            return;
+        }
+    }
+}
+
 pub fn explode(
     x: usize,
     y: usize,
     sand_grid: &mut SandGrid,
     properties: &SandProperties,
-    radius: isize,
+    radius: usize,
 ) {
     sand_grid.set_sand(x, y, Sand::Fire);
 
     let mut angle = 0.0f64;
     while angle < 3.14159 * 2.0 {
-        let mut posx = 0.0f64;
-        let mut posy = 0.0f64;
-        while (posx * posx + posy * posy).sqrt() < radius as f64 {
-            posx += angle.cos() * 2.0;
-            posy += angle.sin() * 2.0;
-            let trans_x = posx + x as f64;
-            let trans_y = posy + y as f64;
-
-            if trans_x < 0.0
-                || trans_y < 0.0
-                || trans_x >= sand_grid.width as f64
-                || trans_y >= sand_grid.height as f64
-            {
-                break;
-            }
-
-            let trans_x = trans_x.floor() as usize;
-            let trans_y = trans_y.floor() as usize;
-
-            if properties
-                .can_replace
-                .contains(&sand_grid.get_sand(trans_x, trans_y))
-            {
-                sand_grid.set_sand(trans_x, trans_y, Sand::Fire);
-                sand_grid.set_updated(trans_x, trans_y);
-                sand_grid.set_can_update(trans_x, trans_y);
-            } else {
-                break;
-            }
-        }
+        cast_ray(x, y, angle, sand_grid, properties, radius);
         angle += 0.05;
     }
 }
@@ -127,6 +138,7 @@ pub fn update_explosive(
         _ => return,
     }
 
+    //If it is bordering lava or fire, then explode
     if count_neighbors(x, y, &sand_grid, Sand::Lava) >= 1
         || count_neighbors(x, y, sand_grid, Sand::Fire) >= 1
     {

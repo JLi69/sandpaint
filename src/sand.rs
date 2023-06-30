@@ -79,6 +79,39 @@ impl SandGrid {
         }
     }
 
+    fn set_adjacent_can_update(&mut self, x: usize, y: usize) {
+        const ADJ_X: [isize; 8] = [0, 0, -1, 1, -1, -1, 1, 1];
+        const ADJ_Y: [isize; 8] = [-1, 1, 0, 0, -1, 1, -1, 1];
+
+        for i in 0..8 {
+            let posx = x as isize + ADJ_X[i];
+            let posy = y as isize + ADJ_Y[i];
+            if self.out_of_bounds(posx, posy) {
+                continue;
+            }
+            self.set_can_update(posx as usize, posy as usize);
+        }
+    }
+
+    fn check_space_nearby(&self, x: usize, y: usize, sand_property: &SandProperties) -> bool {
+        const ADJ_X: [isize; 8] = [0, 0, -1, 1, -1, -1, 1, 1];
+        const ADJ_Y: [isize; 8] = [-1, 1, 0, 0, -1, 1, -1, 1];
+
+        for i in 0..8 {
+            let posx = (x as isize + ADJ_X[i]) as usize;
+            let posy = (y as isize + ADJ_Y[i]) as usize;
+            if self.space_available(posx, posy, sand_property)
+                || sand_property
+                    .can_sink_in
+                    .contains(&self.get_sand(posx, posy))
+            {
+                return true;
+            }
+        }
+
+        false
+    }
+
     //Place sand in a circle centered at posx and posy
     pub fn place_sand(&mut self, sand: Sand, posx: i32, posy: i32, radius: u32) {
         for y in (posy - radius as i32)..(posy + radius as i32) {
@@ -91,18 +124,7 @@ impl SandGrid {
                     self.set_sand(x as usize, y as usize, sand);
                     self.grid[y as usize * self.width + x as usize].can_update = true;
                     self.grid[y as usize * self.width + x as usize].updated = false;
-
-                    const ADJ_X: [isize; 9] = [0, 0, -1, 1, -1, -1, 1, 1, 0];
-                    const ADJ_Y: [isize; 9] = [-1, 1, 0, 0, -1, 1, -1, 1, 0];
-
-                    for i in 0..8 {
-                        let posx = x as isize + ADJ_X[i];
-                        let posy = y as isize + ADJ_Y[i];
-                        if self.out_of_bounds(posx, posy) {
-                            continue;
-                        }
-                        self.grid[posy as usize * self.width + posx as usize].can_update = true;
-                    }
+                    self.set_adjacent_can_update(x as usize, y as usize);
                 }
             }
         }
@@ -178,17 +200,8 @@ impl SandGrid {
             let (x, y) = (i % self.width, i / self.width);
 
             if self.grid[i].updated || self.grid[i].sand_type == Sand::Fire {
-                const ADJ_X: [isize; 9] = [0, 0, -1, 1, -1, -1, 1, 1, 0];
-                const ADJ_Y: [isize; 9] = [-1, 1, 0, 0, -1, 1, -1, 1, 0];
-
-                for i in 0..8 {
-                    let posx = x as isize + ADJ_X[i];
-                    let posy = y as isize + ADJ_Y[i];
-                    if self.out_of_bounds(posx, posy) {
-                        continue;
-                    }
-                    self.grid[posy as usize * self.width + posx as usize].can_update = true;
-                }
+                self.set_can_update(x, y);
+                self.set_adjacent_can_update(x, y);
             }
 
             self.grid[i].updated = false;
@@ -271,26 +284,8 @@ impl SandGrid {
             self.update_pixel(x, y, &sand_sim_properties);
         }
 
-        const ADJ_X: [isize; 8] = [0, 0, -1, 1, -1, -1, 1, 1];
-        const ADJ_Y: [isize; 8] = [-1, 1, 0, 0, -1, 1, -1, 1];
-
-        let mut space_nearby = false;
-        for i in 0..8 {
-            let posx = (x as isize + ADJ_X[i]) as usize;
-            let posy = (y as isize + ADJ_Y[i]) as usize;
-            if self.space_available(posx, posy, sand_property)
-                || sand_property
-                    .can_sink_in
-                    .contains(&self.get_sand(posx, posy))
-            {
-                space_nearby = true;
-                break;
-            }
-        }
-
-        if !space_nearby && !self.get_updated(x, y) {
+        if !self.check_space_nearby(x, y, sand_property) && !self.get_updated(x, y) {
             self.grid[self.width * y + x].can_update = false;
-            return;
         }
     }
 }
