@@ -61,6 +61,7 @@ pub fn fall_down(
     false
 }
 
+#[allow(clippy::if_same_then_else)]
 pub fn fall_left_right(
     x: usize,
     y: usize,
@@ -142,6 +143,7 @@ pub fn fall_left_right(
     false
 }
 
+#[allow(clippy::if_same_then_else)]
 pub fn flow_left_right(
     x: usize,
     y: usize,

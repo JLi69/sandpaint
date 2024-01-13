@@ -8,6 +8,7 @@ use sand_properties::{SandProperties, SandSimulationProperties};
 
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[allow(clippy::enum_variant_names)]
 pub enum Sand {
     Air,
     Sand,
@@ -222,11 +223,10 @@ impl SandGrid {
         }
 
         let sand_property_op = sand_sim_properties.get_sand_property(self.get_sand(x, y));
-        let sand_property;
-        match sand_property_op {
-            Some(sand_prop) => sand_property = sand_prop,
+        let sand_property = match sand_property_op {
+            Some(sand_prop) => sand_prop,
             _ => return,
-        }
+        };
 
         let sand = self.get_sand(x, y);
 
@@ -281,7 +281,7 @@ impl SandGrid {
         }
 
         if self.get_sand(x, y) != sand {
-            self.update_pixel(x, y, &sand_sim_properties);
+            self.update_pixel(x, y, sand_sim_properties);
         }
 
         if !self.check_space_nearby(x, y, sand_property) && !self.get_updated(x, y) {

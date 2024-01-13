@@ -26,6 +26,7 @@ fn count_neighbors(x: usize, y: usize, sand_grid: &SandGrid, sand: Sand) -> u32 
     count
 }
 
+#[allow(clippy::needless_return)]
 pub fn update_particle(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &SandProperties) {
     if y == sand_grid.height - 1 {
         return;
@@ -40,6 +41,7 @@ pub fn update_particle(x: usize, y: usize, sand_grid: &mut SandGrid, properties:
     }
 }
 
+#[allow(clippy::needless_return)]
 pub fn update_liquid(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &SandProperties) {
     if y == sand_grid.height - 1 {
         sand_physics::flow_left_right(x, y, sand_grid, properties);
@@ -119,7 +121,7 @@ pub fn explode(
     sand_grid.set_sand(x, y, Sand::Fire);
 
     let mut angle = 0.0f64;
-    while angle < 3.14159 * 2.0 {
+    while angle < std::f64::consts::PI * 2.0 {
         cast_ray(x, y, angle, sand_grid, properties, radius);
         angle += 0.05;
     }
@@ -132,18 +134,17 @@ pub fn update_explosive(
     properties: &SandProperties,
     sand_sim_properties: &SandSimulationProperties,
 ) {
-    let explosion_property;
-    match sand_sim_properties.get_sand_property(Sand::Explosion) {
-        Some(sand_prop) => explosion_property = sand_prop,
+    let explosion_property = match sand_sim_properties.get_sand_property(Sand::Explosion) {
+        Some(sand_prop) => sand_prop,
         _ => return,
-    }
+    };
 
     //If it is bordering lava or fire, then explode
-    if count_neighbors(x, y, &sand_grid, Sand::Lava) >= 1
+    if count_neighbors(x, y, sand_grid, Sand::Lava) >= 1
         || count_neighbors(x, y, sand_grid, Sand::Fire) >= 1
     {
         sand_grid.set_sand(x, y, Sand::Fire);
-        explode(x, y, sand_grid, &explosion_property, 64);
+        explode(x, y, sand_grid, explosion_property, 64);
         return;
     }
 
@@ -196,6 +197,7 @@ pub fn update_fire(x: usize, y: usize, sand_grid: &mut SandGrid, properties: &Sa
 
 //Transforms the cell at the position based on the number
 //of neighboring cells of a certain type
+#[allow(clippy::too_many_arguments)]
 pub fn transform_from_neighbors(
     x: usize,
     y: usize,

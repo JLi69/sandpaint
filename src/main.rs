@@ -36,7 +36,7 @@ fn change_brush_size(
         return brush_radius + 1;
     }
 
-    return brush_radius;
+    brush_radius
 }
 
 fn display_sand_select(
@@ -50,8 +50,8 @@ fn display_sand_select(
     canvas
         .fill_rect(Rect::new(0, 0, canvas_dimensions.0, 16))
         .map_err(|e| e.to_string())?;
-    for i in 0..sand_menu.len() {
-        canvas.set_draw_color(sand::sand_color(sand_menu[i]));
+    for (i, sand) in sand_menu.iter().enumerate() {
+        canvas.set_draw_color(sand::sand_color(*sand));
         if i == selected_ind {
             canvas
                 .fill_rect(Rect::new(i as i32 * 16 + 2, 2, 12, 12))
@@ -72,13 +72,13 @@ fn calculate_display_rect(canvas: &Canvas<Window>) -> Rect {
     match canvas_dimensions {
         Ok((w, h)) => {
             if w * 3 / 4 > (h - 16) {
-                return Rect::from_center(
+                Rect::from_center(
                     Point::new(w as i32 / 2, h as i32 / 2 + 8),
                     (h - 16) * 4 / 3,
                     h - 16,
-                );
+                )
             } else {
-                return Rect::from_center(Point::new(w as i32 / 2, h as i32 / 2 + 8), w, w * 3 / 4);
+                Rect::from_center(Point::new(w as i32 / 2, h as i32 / 2 + 8), w, w * 3 / 4)
             }
         }
         Err(msg) => {
@@ -96,7 +96,7 @@ fn update_sand(
     if sim_clock.timer > 1.0 / 60.0 && !sim_clock.paused {
         let start_sand_update = Instant::now();
 
-        sand_grid.update_sand(&sand_sim_properties, sim_clock.frame);
+        sand_grid.update_sand(sand_sim_properties, sim_clock.frame);
 
         let time_passed = start_sand_update.elapsed().as_millis();
         println!("{time_passed} ms to update sand");
@@ -129,8 +129,8 @@ fn display_brush(
     radius: u32,
     sand_grid: &SandGrid,
 ) {
-    for y in (mousey - radius as isize)..(mousey as isize + radius as isize) {
-        for x in (mousex - radius as isize)..(mousex as isize + radius as isize) {
+    for y in (mousey - radius as isize)..(mousey + radius as isize) {
+        for x in (mousex - radius as isize)..(mousex + radius as isize) {
             if sand_grid.out_of_bounds(x, y) {
                 continue;
             }

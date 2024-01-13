@@ -27,31 +27,22 @@ impl SandProperties {
 
         properties.add_replaceable(Sand::Air);
 
-        match can_replace {
-            Some(can_replace) => {
-                can_replace
-                    .into_iter()
-                    .for_each(|sand| properties.add_replaceable(sand));
-            }
-            _ => {}
+        if let Some(can_replace) = can_replace {
+            can_replace
+                .into_iter()
+                .for_each(|sand| properties.add_replaceable(sand));
         }
 
-        match replace_with {
-            Some(replace_with) => {
-                replace_with
-                    .into_iter()
-                    .for_each(|(sand1, sand2)| properties.add_replace_with(sand1, sand2));
-            }
-            _ => {}
+        if let Some(replace_with) = replace_with {
+            replace_with
+                .into_iter()
+                .for_each(|(sand1, sand2)| properties.add_replace_with(sand1, sand2));
         }
 
-        match can_sink_in {
-            Some(can_sink_in) => {
-                can_sink_in
-                    .into_iter()
-                    .for_each(|sand| properties.add_can_sink_in(sand));
-            }
-            _ => {}
+        if let Some(can_sink_in) = can_sink_in {
+            can_sink_in
+                .into_iter()
+                .for_each(|sand| properties.add_can_sink_in(sand));
         }
 
         properties
